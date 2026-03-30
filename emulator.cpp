@@ -34,6 +34,15 @@ public:
       case 0x000E: // 0x00EE return from subroutine
         // TODO: Implement return from subroutine
         break;
+      case 0x0004: // 0x8XY4 arithmetic add with carry.
+        if (V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8])) {
+          V[0xF] = 1; // carry flag
+        } else {
+          V[0x0F] = 0;
+        }
+        V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
+        pc += 2;
+        break;
       default:
         std::cout << "Unknown opcode [0x0000]: 0x" << opcode << "\n";
         break;
@@ -41,6 +50,11 @@ public:
     case 0xA000: // Set I to address
       I = opcode & 0x0FFF;
       pc += 2;
+      break;
+    case 0x2000:            // Call subroutine
+      stack[sp] = pc;       // store current address.
+      ++sp;                 // increment to next instruction
+      pc = opcode & 0x0FFF; // Set PC to address of next address from opcode.
       break;
     default:
       std::cerr << "Unknown opcode: 0x" << opcode << "\n";
