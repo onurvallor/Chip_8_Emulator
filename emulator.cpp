@@ -35,6 +35,8 @@ public:
         // TODO: Implement return from subroutine
         break;
       case 0x0004: // 0x8XY4 arithmetic add with carry.
+                   // Move opcode bits of both X and Y to be at the right most
+                   // nibble
         if (V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8])) {
           V[0xF] = 1; // carry flag
         } else {
@@ -43,6 +45,11 @@ public:
         V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
         pc += 2;
         break;
+      case 0x0006: // 0x8XY6 right shift and carry the LSB
+                   // Right shift X value to the end of the hex and set V[F] to
+                   // the LSB
+        V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
+        V[(opcode & 0x0F00) >> 8] >>= 1;
       default:
         std::cout << "Unknown opcode [0x0000]: 0x" << opcode << "\n";
         break;
