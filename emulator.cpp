@@ -58,6 +58,9 @@ public:
       I = opcode & 0x0FFF;
       pc += 2;
       break;
+    case 0x1000:
+      pc = opcode & 0x0FFF;
+      break;
     case 0x2000:            // Call subroutine
       stack[sp] = pc;       // store current address.
       ++sp;                 // increment to next instruction
