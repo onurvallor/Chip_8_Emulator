@@ -10,6 +10,12 @@ void Chip8::initialize() {
   I = 0;
   sp = 0;
 
+  memory.fill(0);
+  V.fill(0);
+  gfx.fill(0);
+  stack.fill(0);
+  key.fill(0);
+
   for (int i = 0; i < 80; ++i) {
     // TODO: implement fontset.
     // memory[i] = chip8_fontset[i];
