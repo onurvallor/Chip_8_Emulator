@@ -34,6 +34,15 @@ public:
       case 0x000E: // 0x00EE return from subroutine
         // TODO: Implement return from subroutine
         break;
+      default:
+        std::cout << "Unknown opcode [0x0000]: 0x" << opcode << "\n";
+        break;
+      }
+      break;
+    case 0x8000:
+
+      switch (opcode & 0x000F) {
+
       case 0x0004: // 0x8XY4 arithmetic add with carry.
                    // Move opcode bits of both X and Y to be at the right most
                    // nibble
@@ -50,17 +59,18 @@ public:
                    // the LSB
         V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
         V[(opcode & 0x0F00) >> 8] >>= 1;
-      default:
-        std::cout << "Unknown opcode [0x0000]: 0x" << opcode << "\n";
-        break;
       }
+      break;
+
     case 0xA000: // Set I to address
       I = opcode & 0x0FFF;
       pc += 2;
       break;
+
     case 0x1000:
       pc = opcode & 0x0FFF;
       break;
+
     case 0x2000:            // Call subroutine
       stack[sp] = pc;       // store current address.
       ++sp;                 // increment to next instruction
