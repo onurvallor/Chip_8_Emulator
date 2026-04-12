@@ -1,5 +1,6 @@
 #include "Chip8.hpp"
 #include <array>
+#include <cstdint>
 #include <iostream>
 
 Chip8::Chip8() { initialize(); }
@@ -26,6 +27,12 @@ void Chip8::emulateCycle() {
   // fetch opcode by grabbing 2 bytes from PC and merging them using OR
   opcode = memory[pc] << 8 | memory[pc + 1];
 
+  const uint8_t x{static_cast<uint8_t>((opcode & 0x0F00) >> 8)};
+  const uint8_t y{static_cast<uint8_t>((opcode & 0x00F0) >> 4)};
+  const uint8_t carryFlag{0xF}; // decimal : 15
+
+  const uint8_t byte{static_cast<uint8_t>(opcode & 0x00FF)};
+
   // mask the first nibble to get instruction of opcode
   switch (opcode & 0xF000) {
 
@@ -44,6 +51,10 @@ void Chip8::emulateCycle() {
       break;
     }
     break;
+  case 0x7000:
+    V[x] += byte;
+    pc += 2;
+    break;
   case 0x8000:
 
     switch (opcode & 0x000F) {
@@ -51,29 +62,28 @@ void Chip8::emulateCycle() {
     case 0x0004: // 0x8XY4 arithmetic add with carry.
                  // Move opcode bits of both X and Y to be at the right most
                  // nibble
-      if (V[(opcode & 0x00F0) >> 4] > (0xFF - V[(opcode & 0x0F00) >> 8])) {
-        V[0xF] = 1; // carry flag
+      if (V[y] > (0xFF - V[x])) {
+        V[carryFlag] = 1;
       } else {
-        V[0x0F] = 0;
+        V[carryFlag] = 0;
       }
-      V[(opcode & 0x0F00) >> 8] += V[(opcode & 0x00F0) >> 4];
+      V[x] += V[y];
       pc += 2;
       break;
     case 0x0006: // 0x8XY6 right shift and carry the LSB
                  // Right shift X value to the end of the hex and set V[F] to
                  // the LSB
-      V[0xF] = V[(opcode & 0x0F00) >> 8] & 0x1;
-      V[(opcode & 0x0F00) >> 8] >>= 1;
+      V[carryFlag] = V[x] & 0x1;
+      V[x] >>= 1;
     }
     break;
   case 0x0007: // Subtract VX from VY and if borrow occured set VF to 1, else 0.
-    if ((V[(opcode & 0x0F00) >> 8]) <= (V[opcode & 0x00F0 >> 4])) {
-      V[0xF] = 0; // borrow occured
+    if ((V[x]) <= (V[y])) {
+      V[carryFlag] = 0; // borrow occured
     } else {
-      V[0xF] = 1; // borrow has not occured
+      V[carryFlag] = 1; // borrow has not occured
     }
-    V[(opcode & 0x0F00)] =
-        V[(opcode & 0x0F00) >> 8] - V[(opcode & 0x00F0) >> 4];
+    V[x] = V[x] - V[y];
     break;
   case 0xA000: // Set I to address
     I = opcode & 0x0FFF;
